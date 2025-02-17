@@ -15,30 +15,30 @@ public class VisionSubsystem extends SubsystemBase {
         // Initialize the Limelight here
     }
 
-    public double getTargetAngle() {
+    public static double getTargetAngle() {
         return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
     }
 
-    public double getTargetTY() {
+    public static double getTargetTY() {
         return NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0.0);
     }
 
-    public double getTargetTX() {
+    public static double getTargetTX() {
         return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
     }
 // milliseconds
-    public double getLatencyMS() {
+    public static double getLatencyMS() {
         double Latencytl = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tl").getDouble(0.0);
         double Latencycl = NetworkTableInstance.getDefault().getTable("limelight").getEntry("cl").getDouble(0.0);
         return Latencytl + Latencycl;
     }
 
-    public Pose2d get2DPose() {
+    public static Pose2d get2DPose() {
      double[] poseArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose_orb_wpiblue").getDoubleArray(new double[6]);
     return new Pose2d(poseArray[0], poseArray[1], new Rotation2d(poseArray[5]));
     }
 
-    public int getTagCount() {
+    public static int getTagCount() {
         double[] poseArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose_orb_wpiblue").getDoubleArray(new double[6]);
        return(int) poseArray[7]; 
        }
