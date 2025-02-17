@@ -41,7 +41,7 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    private final Command alignCommand = new AlignCommand(m_visionSubsystem, drivetrain, 0.35, 0);
+    private final Command alignCommand = new AlignCommand(m_visionSubsystem, drivetrain, 1, .25);
 
     public RobotContainer() {
         configureBindings();
