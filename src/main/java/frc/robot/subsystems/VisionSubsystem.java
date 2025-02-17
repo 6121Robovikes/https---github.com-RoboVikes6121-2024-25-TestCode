@@ -28,8 +28,8 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public Pose2d get2DPose() {
-     double[] pose[] = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose_orb_wpiblue").getDoubleArray(new double[6]);
-    return new pose2d(pose[0], pose[1], new Rotation2d[5]);
+     double[] poseArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose_orb_wpiblue").getDoubleArray(new double[6]);
+    return new Pose2d(poseArray[0], poseArray[1], new Rotation2d(poseArray[5]));
     }
 }
 
