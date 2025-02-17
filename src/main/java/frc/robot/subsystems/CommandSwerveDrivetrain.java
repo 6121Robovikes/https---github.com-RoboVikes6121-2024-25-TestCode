@@ -133,6 +133,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+     
     }
 
     /**
@@ -157,6 +158,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+      
     }
 
     /**
@@ -189,6 +191,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+     
     }
 
     /**
