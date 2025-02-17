@@ -26,11 +26,22 @@ public class VisionSubsystem extends SubsystemBase {
     public double getTargetTX() {
         return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
     }
+// milliseconds
+    public double getLatencyMS() {
+        double Latencytl = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tl").getDouble(0.0);
+        double Latencycl = NetworkTableInstance.getDefault().getTable("limelight").getEntry("cl").getDouble(0.0);
+        return Latencytl + Latencycl;
+    }
 
     public Pose2d get2DPose() {
      double[] poseArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose_orb_wpiblue").getDoubleArray(new double[6]);
     return new Pose2d(poseArray[0], poseArray[1], new Rotation2d(poseArray[5]));
     }
+
+    public int getTagCount() {
+        double[] poseArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("botpose_orb_wpiblue").getDoubleArray(new double[6]);
+       return(int) poseArray[7]; 
+       }
 }
 
 
