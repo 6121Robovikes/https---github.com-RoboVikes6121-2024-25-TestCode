@@ -2,15 +2,22 @@ package frc.robot.Commands;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
-
+import frc.robot.Constants.LinearController;
 import frc.robot.Constants.TunerConstants;
 
 public class AlignCommand extends Command {
@@ -30,6 +37,8 @@ public class AlignCommand extends Command {
     private static final double distanceTolerance = 0.1; // Tolerance for distance in meters
     private static final double angleTolerance = 1.0; // Degrees tolerance for alignment
 
+    private LinearController linearController = null;
+
     private double lastValidTargetTX = 0.0;
     private double lastValidTargetTY = 0.0;
 
@@ -39,19 +48,26 @@ public class AlignCommand extends Command {
     private final Timer lostDetectionTimer = new Timer();
     private static final double lostDetectionTimeout = 0.5; // 0.5 seconds timeout for lost detection
 
-    public AlignCommand(VisionSubsystem vision, CommandSwerveDrivetrain swerve, double targetDistance, double targetAngle) {
+    private final ProfiledPIDController controller;
+
+    public AlignCommand(ProfiledPIDController controller, Supplier<Pose2d> pose, VisionSubsystem vision, CommandSwerveDrivetrain swerve, double targetDistance, double targetAngle) {
         m_Vision = vision;
         m_Swerve = swerve;
         this.targetDistance = targetDistance;
         this.targetAngle = targetAngle;
+
         m_alignRequest = new SwerveRequest.RobotCentric()
             .withDeadband(0.1)
             .withRotationalDeadband(0.1)
             .withDriveRequestType(DriveRequestType.Velocity)
             .withSteerRequestType(SteerRequestType.MotionMagicExpo);
+
         MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * 0.5;
         MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond) * 0.5;
         addRequirements(m_Vision, m_Swerve);
+
+        linearController = new LinearController(pose);
+        this.controller = controller;
     }
 
     @Override
@@ -115,15 +131,23 @@ public class AlignCommand extends Command {
         System.out.println("VelocityX: " + distanceAdjust);
         System.out.println("VelocityY: " + horizontalAdjust);
         System.out.println("RotationalRate: " + steeringAdjust);
+
+        //vison pid stuff
+        Rotation2d robotRot = m_Swerve.getRotation3d().toRotation2d();
+        ChassisSpeeds aimAssistSpeeds = TunerConstants.fieldToRobotSpeeds(linearController.Update(m_Swerve), robotRot);
+        aimAssistSpeeds.omegaRadiansPerSecond = headingController.update();
+        desiredSpeeds = InterpolatorUtil.chassisSpeeds(teleopSpeeds, aimAssistSpeeds, aimAssistWeight);
     }
 
     @Override
-    public boolean isFinished() {
+    public boolean isFinished() 
+    {
         return Math.abs(lastValidTargetTY - targetDistance) < distanceTolerance && Math.abs(lastValidTargetAngle - targetAngle) < angleTolerance;
     }
 
     @Override
-    public void end(boolean interrupted) {
+    public void end(boolean interrupted) 
+    {
         System.out.println("AlignCommand ended");
         m_Swerve.setControl(
             m_alignRequest
@@ -131,6 +155,8 @@ public class AlignCommand extends Command {
                 .withVelocityY(0)
                 .withRotationalRate(0)
         );
+
+        linearController = null;
         lostDetectionTimer.stop();
     }
 
@@ -151,4 +177,25 @@ public class AlignCommand extends Command {
         targetingForwardSpeed *= -1.0;
         return targetingForwardSpeed;
     }
+
+    public double DriveTrainRotationSpeed(Supplier<Rotation2d> goalHeadingSupplier) 
+    {
+        double maxAngularAcceleration = /*max angular accel*/;
+        double maxAngularVelocity = /*max angular velocity*/;
+
+        controller.setConstraints(new TrapezoidProfile.Constraints(maxAngularVelocity, maxAngularAcceleration));
+
+        double output = controller.calculate(m_Swerve.getPose().getRotation().getRadians(), goalHeadingSupplier.get().getRadians());
+
+        double headerTolleranceDegrees = /**header tollerance in degrees*/;
+        double degToRad = Math.PI / 180;
+
+        if (Math.abs(controller.getPositionError()) > headerTolleranceDegrees * degToRad) 
+        {
+            return output; 
+        }
+        
+        return 0;
+  }
+
 }

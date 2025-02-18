@@ -10,6 +10,8 @@ import com.ctre.phoenix6.swerve.*;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.*;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.*;
@@ -199,6 +201,21 @@ public class TunerConstants {
         return new CommandSwerveDrivetrain(
             DrivetrainConstants, FrontLeft, FrontRight, BackLeft, BackRight
         );
+    }
+
+    /**Does something important presumably */
+    public static ChassisSpeeds fieldToRobotSpeeds(ChassisSpeeds fieldSpeeds, Rotation2d robotRotation) 
+    {
+        double x = fieldSpeeds.vxMetersPerSecond;
+        double y = fieldSpeeds.vyMetersPerSecond;
+
+        double drivingDistance = Math.hypot(x, y);
+        double angle = Math.atan2(y, x) - robotRotation.getRadians();
+
+        double realX = drivingDistance * Math.cos(angle);
+        double realY = drivingDistance * Math.sin(angle);
+
+        return new ChassisSpeeds(realX, realY, 0);
     }
 
 
